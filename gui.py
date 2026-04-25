@@ -4,7 +4,8 @@ import joblib
 import time
 import numpy as np
 
-# =============================== 
+# =========================================
+# 1. إعدادات الصفحة وإجبار الدارك مود + الـ CSS المطور
 # =========================================
 st.set_page_config(page_title="Salary Oracle | Royal Edition", page_icon="👑", layout="wide")
 
@@ -12,7 +13,7 @@ st.markdown("""
     <style>
     @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;900&family=Playfair+Display:ital,wght@0,400;1,900&family=Montserrat:wght@100;300;600&display=swap');
     
-    /* إجبار الثيم المظلم */
+    /* إجبار الثيم المظلم الشامل */
     html, body, [data-testid="stAppViewContainer"], [data-testid="stHeader"] {
         background-color: #050505 !important;
         color: #ffffff !important;
@@ -50,11 +51,30 @@ st.markdown("""
         margin-bottom: 30px;
         transition: all 0.6s ease;
     }
-    
-    .royal-card:hover {
-        border-left-width: 10px;
-        background: rgba(30, 30, 30, 0.8);
-        transform: translateX(10px);
+
+    /* تحويل المدخلات لـ Premium Glass */
+    .stSelectbox div[data-baseweb="select"], .stNumberInput div[data-baseweb="input"], .stSlider div[data-baseweb="slider"] {
+        background-color: rgba(255, 255, 255, 0.03) !important;
+        border: 1px solid rgba(191, 149, 63, 0.2) !important;
+        border-radius: 15px !important;
+    }
+
+    /* كود الـ Responsiveness للموبايل */
+    @media (max-width: 640px) {
+        .royal-title {
+            font-size: 2.5rem !important;
+            letter-spacing: 5px !important;
+        }
+        .salary-res {
+            font-size: 3.2rem !important; /* تصغير الرقم جداً للموبايل عشان ميبقاش تحت بعضه */
+        }
+        .result-card {
+            padding: 30px !important;
+            border-radius: 40px 0 40px 0 !important;
+        }
+        .royal-card {
+            padding: 20px !important;
+        }
     }
 
     .section-header {
@@ -93,16 +113,11 @@ st.markdown("""
         letter-spacing: 2px;
         font-weight: 600;
     }
-    
-    .stSelectbox div, .stSlider div, .stNumberInput div {
-        background-color: rgba(255,255,255,0.05) !important;
-        color: white !important;
-    }
     </style>
 """, unsafe_allow_html=True)
 
 # =========================================
-# 2.   Feature Engineering \
+# 2. Logic & Assets Loading
 # =========================================
 def group_job_titles(title):
     title = title.lower()
@@ -128,7 +143,7 @@ def load_assets():
 assets = load_assets()
 
 # =========================================
-# 3. (GUI)
+# 3. GUI Layout
 # =========================================
 st.markdown('<h1 class="royal-title">THE ORACLE</h1>', unsafe_allow_html=True)
 st.markdown('<p style="text-align:center; color:#636b7f; letter-spacing:10px; margin-bottom:60px;">ROYAL SALARY VALUATION</p>', unsafe_allow_html=True)
@@ -153,11 +168,11 @@ with col2:
     st.markdown('</div>', unsafe_allow_html=True)
 
 # =========================================
+# 4. Processing & Output
 # =========================================
 if st.button("⚜️ DISCOVER NET WORTH ⚜️"):
     if assets:
         with st.spinner("Decoding economic patterns..."):
-            # تطبيق الـ Feature Engineering
             job_cat = group_job_titles(job_title)
             is_lead = 1 if any(word in job_title for word in ['Lead', 'Principal', 'Manager', 'Head', 'Director']) else 0
             
@@ -168,7 +183,7 @@ if st.button("⚜️ DISCOVER NET WORTH ⚜️"):
                 'certifications': [certs], 'Is_Lead_Role': [is_lead], 'salary': [0]
             })
 
-            # Preprocessing Pipeline
+            # Preprocessing
             input_df[['education_level', 'company_size', 'remote_work']] = assets['ord'].transform(input_df[['education_level', 'company_size', 'remote_work']])
             encoded_df = assets['ohe'].transform(input_df)
             if 'salary' in encoded_df.columns: encoded_df.drop(columns=['salary'], inplace=True)
@@ -176,20 +191,18 @@ if st.button("⚜️ DISCOVER NET WORTH ⚜️"):
             num_cols = ['experience_years', 'skills_count', 'certifications', 'education_level', 'company_size', 'remote_work']
             encoded_df[num_cols] = assets['scaler'].transform(encoded_df[num_cols])
 
-            
             try: model_cols = assets['model'].best_estimator_.feature_names_in_
             except: model_cols = assets['model'].feature_names_in_
             encoded_df = encoded_df[model_cols]
 
-            # Prediction
             res = assets['model'].predict(encoded_df)[0]
             time.sleep(1)
 
-            
+            # النتيجة النهائية (Responsive & Royal)
             st.markdown(f"""
-                <div style="background: linear-gradient(135deg, #121212 0%, #2a2a2a 100%); border-radius: 80px 0 80px 0; padding: 60px; text-align: center; border: 4px solid #bf953f; box-shadow: 0 0 100px rgba(0,0,0,1);">
+                <div class="result-card" style="background: linear-gradient(135deg, #121212 0%, #2a2a2a 100%); border-radius: 80px 0 80px 0; padding: 60px; text-align: center; border: 4px solid #bf953f; box-shadow: 0 0 100px rgba(0,0,0,1);">
                     <p style="color: #bf953f; letter-spacing: 10px; font-weight: 100; margin-bottom: 10px;">ANNUAL MARKET APPRAISAL</p>
-                    <h1 style="font-family: 'Cinzel', serif; background: linear-gradient(to right, #856739, #fcf6ba, #856739); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-size: 7rem; font-weight: 900; margin: 0;">${res:,.0f}</h1>
+                    <h1 class="salary-res" style="font-family: 'Cinzel', serif; background: linear-gradient(to right, #856739, #fcf6ba, #856739); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-size: 7rem; font-weight: 900; margin: 0; line-height: 1.1;">${res:,.0f}</h1>
                     <div style="width: 150px; height: 1px; background: #bf953f; margin: 25px auto; opacity: 0.5;"></div>
                     <p style="color: #636b7f; letter-spacing: 3px;">ROYAL ANALYTICS VERIFIED</p>
                 </div>
